@@ -127,10 +127,18 @@ public class EclipseContextManager {
 	 * <p>Made public in 2.7 so that headless execution paths (e.g. the
 	 * <code>org.eclipse.epsilon.workflow</code> Ant tasks) can reuse the same
 	 * discovery logic instead of duplicating it, keeping the two in sync.</p>
+	 *
+	 * <p>This method is a no-op when no Eclipse extension registry is available
+	 * (e.g. when the workflow Ant tasks are run outside a live Platform, as in
+	 * the nested antRunner used by the EUnit workflow tests). In that situation
+	 * there is no extension point to discover contributors from, so callers on
+	 * the headless path must not fail.</p>
 	 */
 	public static void loadOperationContributors(IEolContext context) {
 		IExtensionRegistry registry = Platform.getExtensionRegistry();
+		if (registry == null) return;
 		IExtensionPoint extensionPoint = registry.getExtensionPoint("org.eclipse.epsilon.common.dt.operationContributor");
+		if (extensionPoint == null) return;
 		IConfigurationElement[] configurationElements =  extensionPoint.getConfigurationElements();
 		for (int i=0;i<configurationElements.length; i++){
 			IConfigurationElement configurationElement = configurationElements[i];
